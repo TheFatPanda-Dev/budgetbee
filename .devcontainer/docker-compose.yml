@@ -12,7 +12,7 @@ services:
     networks:
       - skynet
   webserver:
-    build: 
+    build:
       context: ../api
       dockerfile: ../api/Dockerfile.dev
     volumes:
@@ -35,7 +35,6 @@ services:
       - skynet_back
   web:
     build:
-      context: ../web
       dockerfile: Dockerfile.dev
     volumes:
       - ../web:/var/www/html
@@ -44,7 +43,7 @@ services:
     networks:
       - skynet
   db:
-    image: mysql:8.2.0
+    image: mysql:latest
     ports:
       - "${DB_PORT}:3306"
     environment:
