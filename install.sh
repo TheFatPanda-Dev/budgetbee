@@ -279,19 +279,14 @@ mkdir -p "$TARGET_FOLDER"
 
 cd "$TARGET_FOLDER"
 
-if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/nginx/nginx.conf" && -f "$SCRIPT_DIR/docker/mysql/Dockerfile" ]]; then
+if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/default.conf" ]]; then
 	cp "$SCRIPT_DIR/docker/docker-compose.yml" docker-compose.yml
 	cp "$SCRIPT_DIR/docker/.env.example" .env
-	cp -r "$SCRIPT_DIR/docker/nginx" ./nginx
-	cp -r "$SCRIPT_DIR/docker/mysql" ./mysql
+	cp "$SCRIPT_DIR/docker/default.conf" default.conf
 else
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/docker-compose.yml" -O docker-compose.yml
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/.env.example" -O .env
-	mkdir -p nginx
-	mkdir -p mysql
-	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/nginx.conf" -O nginx/nginx.conf
-	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/Dockerfile" -O nginx/Dockerfile
-	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/mysql/Dockerfile" -O mysql/Dockerfile
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/default.conf" -O default.conf
 fi
 
 if [[ -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/web" ]]; then
