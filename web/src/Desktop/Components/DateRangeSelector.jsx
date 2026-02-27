@@ -121,15 +121,12 @@ export default function DateRangeSelector({ setStartDate, setEndDate }) {
                     name="from_date"
                     id="from_date"
                     onChange={handleChange}
+                    value={customRange ? "custom" : dates[dateName]}
                     className="border cursor-pointer text-sm rounded-lg block w-full pl-10 p-2.5 w-36 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
                 >
                     {Object.entries(dates).map(([key, value]) => {
                         return (
-                            <option
-                                key={key}
-                                value={value}
-                                selected={key === dateName}
-                            >
+                            <option key={key} value={value}>
                                 {key}
                             </option>
                         );

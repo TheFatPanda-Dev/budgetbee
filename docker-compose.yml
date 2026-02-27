@@ -1,6 +1,8 @@
 services:
   nginx:
-    image: ghcr.io/budgetbee/budgetbee/proxy:latest
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     command: nginx -g "daemon off;"
     ports:
       - "${APP_PORT}:80"
@@ -28,7 +30,9 @@ services:
     networks:
       - skynet
   web:
-    image: ghcr.io/budgetbee/budgetbee/web:latest
+    build:
+      context: ./web
+      dockerfile: Dockerfile
     restart: unless-stopped
     networks:
       - skynet
