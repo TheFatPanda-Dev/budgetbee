@@ -11,7 +11,9 @@ services:
     networks:
       - skynet
   webserver:
-    image: ghcr.io/budgetbee/budgetbee/api:latest
+    build:
+      context: ./api
+      dockerfile: Dockerfile
     working_dir: /var/www/html
     command: sh entrypoint.sh
     environment:

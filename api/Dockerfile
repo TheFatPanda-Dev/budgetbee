@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-alpine
+FROM php:8.5-fpm-alpine
 
 # Install cron
 RUN apk add --no-cache dcron
@@ -32,7 +32,7 @@ RUN apk add --no-cache python3 py3-pip python3-dev build-base \
     && apk add --no-cache gfortran
 
 # Install Python dependencies
-RUN pip3 install --no-cache-dir scikit-learn joblib
+RUN pip3 install --no-cache-dir --break-system-packages scikit-learn joblib
 
 # Set working directory
 WORKDIR /var/www/html
@@ -47,8 +47,8 @@ RUN chmod -R 775 storage bootstrap/cache \
 RUN chown www-data:www-data ./entrypoint.sh \
     && chmod +x ./entrypoint.sh
 
-# Change the user to www-data
-USER www-data
-
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Change the user to www-data
+USER www-data
