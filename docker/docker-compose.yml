@@ -19,12 +19,12 @@ services:
     working_dir: /var/www/html
     command: sh entrypoint.sh
     environment:
-      DB_HOST: db
+      DB_HOST: mysql
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
-      db:
+      mysql:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -36,8 +36,10 @@ services:
     restart: unless-stopped
     networks:
       - skynet
-  db:
-    image: mysql:latest
+  mysql:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
     ports:
       - "${DB_PORT:-3306}:3306"
     environment:

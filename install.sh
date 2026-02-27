@@ -279,16 +279,19 @@ mkdir -p "$TARGET_FOLDER"
 
 cd "$TARGET_FOLDER"
 
-if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/nginx/nginx.conf" ]]; then
+if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/nginx/nginx.conf" && -f "$SCRIPT_DIR/docker/mysql/Dockerfile" ]]; then
 	cp "$SCRIPT_DIR/docker/docker-compose.yml" docker-compose.yml
 	cp "$SCRIPT_DIR/docker/.env.example" .env
 	cp -r "$SCRIPT_DIR/docker/nginx" ./nginx
+	cp -r "$SCRIPT_DIR/docker/mysql" ./mysql
 else
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/docker-compose.yml" -O docker-compose.yml
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/.env.example" -O .env
 	mkdir -p nginx
+	mkdir -p mysql
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/nginx.conf" -O nginx/nginx.conf
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/Dockerfile" -O nginx/Dockerfile
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/mysql/Dockerfile" -O mysql/Dockerfile
 fi
 
 if [[ -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/web" ]]; then
@@ -300,9 +303,9 @@ SECRET_KEY=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | h
 
 sed -i "s/HOST=localhost/HOST=$IP/g" .env
 if grep -q "^DB_HOST=" .env ; then
-	sed -i "s#^DB_HOST=.*#DB_HOST=db#g" .env
+	sed -i "s#^DB_HOST=.*#DB_HOST=mysql#g" .env
 else
-	echo "DB_HOST=db" >> .env
+	echo "DB_HOST=mysql" >> .env
 fi
 sed -i "s/DB_DATABASE=budgetbee/DB_DATABASE=$DB_DATABASE/g" .env
 sed -i "s/DB_USERNAME=user/DB_USERNAME=$DB_USERNAME/g" .env
@@ -336,7 +339,7 @@ fi
 ${DOCKER_COMPOSE_CMD} pull
 
 echo "Starting DB first for initilzation"
-${DOCKER_COMPOSE_CMD} up --detach db
+${DOCKER_COMPOSE_CMD} up --detach mysql
 # hopefully enough time for even the slower systems
 sleep 15
 
@@ -353,7 +356,7 @@ SERVICE_ATTEMPT=1
 while true ; do
 	total_services=$(${DOCKER_COMPOSE_CMD} ps --services 2>/dev/null | wc -l)
 	running_services=$(${DOCKER_COMPOSE_CMD} ps --services --filter status=running 2>/dev/null | wc -l)
-	db_healthy=$(${DOCKER_COMPOSE_CMD} ps db 2>/dev/null | grep -c "healthy" || true)
+	db_healthy=$(${DOCKER_COMPOSE_CMD} ps mysql 2>/dev/null | grep -c "healthy" || true)
 
 	if [[ "$total_services" -gt 0 && "$running_services" -eq "$total_services" && "$db_healthy" -gt 0 ]] ; then
 		echo "All services are up and database is healthy."
@@ -377,8 +380,18 @@ RETRY_DELAY=3
 ATTEMPT=1
 
 while true ; do
-	if ${DOCKER_COMPOSE_CMD} exec -T webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD" ; then
+	create_user_output=$(${DOCKER_COMPOSE_CMD} exec -T webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD" 2>&1)
+	create_user_exit=$?
+
+	if [[ $create_user_exit -eq 0 ]] ; then
 		echo "Initial user created successfully."
+		break
+	fi
+
+	echo "$create_user_output"
+
+	if echo "$create_user_output" | grep -qi "email has already been taken" ; then
+		echo "Initial user already exists. Continuing installation."
 		break
 	fi
 
