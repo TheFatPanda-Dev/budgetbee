@@ -211,11 +211,18 @@ cd "$TARGET_FOLDER"
 if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/nginx/nginx.conf" ]]; then
 	cp "$SCRIPT_DIR/docker/docker-compose.yml" docker-compose.yml
 	cp "$SCRIPT_DIR/docker/.env.example" .env
-	cp "$SCRIPT_DIR/docker/nginx/nginx.conf" default.conf
+	cp -r "$SCRIPT_DIR/docker/nginx" ./nginx
 else
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/docker-compose.yml" -O docker-compose.yml
 	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/.env.example" -O .env
-	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/nginx.conf" -O default.conf
+	mkdir -p nginx
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/nginx.conf" -O nginx/nginx.conf
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/Dockerfile" -O nginx/Dockerfile
+fi
+
+if [[ -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/web" ]]; then
+	sed -i "s#context: ../api#context: $SCRIPT_DIR/api#g" docker-compose.yml
+	sed -i "s#context: ../web#context: $SCRIPT_DIR/web#g" docker-compose.yml
 fi
 
 SECRET_KEY=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
