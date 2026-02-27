@@ -3,7 +3,7 @@ import Api from "../../../Api/Endpoints";
 import SettingsLayout from "../../layout/SettingsLayout";
 import CurrencyCard from "./Components/CurrencyCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 export default function CurrencySettings() {
     const [userSettings, setUserSettings] = useState([]);

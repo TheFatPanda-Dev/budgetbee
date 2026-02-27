@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import numeral from "numeral";
 import Api from "../../../Api/Endpoints";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 
 export default function CurrencySettings({ currency, userSettings }) {
     const [editCurrency, setEditCurrency] = useState(false);

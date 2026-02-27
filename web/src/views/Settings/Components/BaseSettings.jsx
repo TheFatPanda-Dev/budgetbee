@@ -8,7 +8,7 @@ import {
     Button,
     useDisclosure,
     Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import Api from "../../../Api/Endpoints";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CurrencyCard from "./CurrencyCard";

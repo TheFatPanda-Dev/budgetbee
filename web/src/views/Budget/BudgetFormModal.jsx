@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Api from "../../Api/Endpoints";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@heroui/react";
 
 export default function BudgetFormModal({ isOpen, onOpenChange, budget, setIsUpdated }) {
     const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +74,7 @@ export default function BudgetFormModal({ isOpen, onOpenChange, budget, setIsUpd
     }
 
     return (
-        <Modal isOpen={isOpen} 
+        <Modal isOpen={isOpen}
             onOpenChange={onOpenChange}
             className="w-11/12"
             placement="center">
