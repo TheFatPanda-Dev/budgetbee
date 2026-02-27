@@ -191,7 +191,7 @@ echo ""
 ask "Database name" "budgetbee"
 DB_DATABASE=$ask_result
 
-ask "Database user" "user"
+ask "Database user" "$(whoami)"
 DB_USERNAME=$ask_result
 
 ask "Generate random DB passwords?" "y" "y n"
