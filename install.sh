@@ -112,6 +112,9 @@ APP_PORT=$ask_result
 ask "Api Port" "8085"
 API_PORT=$ask_result
 
+ask "MySQL Port" "3306"
+DB_PORT=$ask_result
+
 echo ""
 echo "BudgetBee requires the current time zone."
 echo "Example: Europe/Madrid"
@@ -179,6 +182,65 @@ ask "Email" "$USERNAME@localhost"
 EMAIL=$ask_result
 
 echo ""
+echo "4. Database credentials"
+echo "======================="
+echo ""
+echo "These are MySQL credentials used by the application to connect to the DB."
+echo ""
+
+ask "Database name" "budgetbee"
+DB_DATABASE=$ask_result
+
+ask "Database user" "user"
+DB_USERNAME=$ask_result
+
+ask "Generate random DB passwords?" "y" "y n"
+GENERATE_RANDOM_DB_PASSWORDS=$ask_result
+
+if [[ "$GENERATE_RANDOM_DB_PASSWORDS" == "y" ]] ; then
+	DB_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
+	DB_ROOT_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
+else
+	while true; do
+		read -r -sp "database user password: " DB_PASSWORD
+		echo ""
+
+		if [[ -z $DB_PASSWORD ]] ; then
+			echo "Database user password cannot be empty."
+			continue
+		fi
+
+		read -r -sp "database user password (again): " DB_PASSWORD_REPEAT
+		echo ""
+
+		if [[ ! "$DB_PASSWORD" == "$DB_PASSWORD_REPEAT" ]] ; then
+			echo "Passwords did not match"
+		else
+			break
+		fi
+	done
+
+	while true; do
+		read -r -sp "database root password: " DB_ROOT_PASSWORD
+		echo ""
+
+		if [[ -z $DB_ROOT_PASSWORD ]] ; then
+			echo "Database root password cannot be empty."
+			continue
+		fi
+
+		read -r -sp "database root password (again): " DB_ROOT_PASSWORD_REPEAT
+		echo ""
+
+		if [[ ! "$DB_ROOT_PASSWORD" == "$DB_ROOT_PASSWORD_REPEAT" ]] ; then
+			echo "Passwords did not match"
+		else
+			break
+		fi
+	done
+fi
+
+echo ""
 echo "Summary"
 echo "======="
 echo ""
@@ -193,9 +255,18 @@ echo ""
 echo "Target folder: $TARGET_FOLDER"
 echo "Web port: $APP_PORT"
 echo "Api port: $API_PORT"
+echo "MySQL port: $DB_PORT"
 echo "Timezone: $TIME_ZONE"
 echo "budgetbee username: $USERNAME"
 echo "budgetbee email: $EMAIL"
+echo "Database name: $DB_DATABASE"
+echo "Database user: $DB_USERNAME"
+
+if [[ "$GENERATE_RANDOM_DB_PASSWORDS" == "y" ]] ; then
+	echo "Database passwords: generated automatically"
+else
+	echo "Database passwords: provided manually"
+fi
 
 echo ""
 read -r -p "Press any key to install."
@@ -226,14 +297,20 @@ if [[ -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/web" ]]; then
 fi
 
 SECRET_KEY=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
-DB_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
-DB_ROOT_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
 
 sed -i "s/HOST=localhost/HOST=$IP/g" .env
+sed -i "s/DB_DATABASE=budgetbee/DB_DATABASE=$DB_DATABASE/g" .env
+sed -i "s/DB_USERNAME=user/DB_USERNAME=$DB_USERNAME/g" .env
 sed -i "s/DB_PASSWORD=password/DB_PASSWORD=$DB_PASSWORD/g" .env
 sed -i "s/DB_ROOT_PASSWORD=root_password/DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD/g" .env
 sed -i "s/APP_PORT=8895/APP_PORT=$APP_PORT/g" .env
 sed -i "s/API_PORT=8085/API_PORT=$API_PORT/g" .env
+
+if grep -q "^DB_PORT=" .env ; then
+	sed -i "s/DB_PORT=.*/DB_PORT=$DB_PORT/g" .env
+else
+	echo "DB_PORT=$DB_PORT" >> .env
+fi
 
 # If the database folder was provided (not blank), replace the pgdata/db_data volume with a bind mount# of the provided folder
 if [[ -n $DATABASE_FOLDER ]] ; then
