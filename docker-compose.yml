@@ -1,7 +1,7 @@
 services:
   nginx:
     build:
-      context: ./docker/nginx
+      context: ./nginx
       dockerfile: Dockerfile
     command: nginx -g "daemon off;"
     ports:
@@ -14,7 +14,7 @@ services:
       - skynet
   webserver:
     build:
-      context: ./api
+      context: /home/thefatpanda/Documents/devOps/personal/budgetbee-clean-test/api
       dockerfile: Dockerfile
     working_dir: /var/www/html
     command: sh entrypoint.sh
@@ -31,7 +31,7 @@ services:
       - skynet
   web:
     build:
-      context: ./web
+      context: /home/thefatpanda/Documents/devOps/personal/budgetbee-clean-test/web
       dockerfile: Dockerfile
     restart: unless-stopped
     networks:
@@ -44,7 +44,7 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     healthcheck:
-      test: ["CMD", "/usr/bin/mysql", "--user=${DB_USERNAME}",  "--password=${DB_PASSWORD}", "--execute", "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${DB_DATABASE}';"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost --silent"]
       timeout: 20s
       retries: 100
     restart: unless-stopped
