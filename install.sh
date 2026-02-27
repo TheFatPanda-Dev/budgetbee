@@ -299,6 +299,11 @@ fi
 SECRET_KEY=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
 
 sed -i "s/HOST=localhost/HOST=$IP/g" .env
+if grep -q "^DB_HOST=" .env ; then
+	sed -i "s#^DB_HOST=.*#DB_HOST=db#g" .env
+else
+	echo "DB_HOST=db" >> .env
+fi
 sed -i "s/DB_DATABASE=budgetbee/DB_DATABASE=$DB_DATABASE/g" .env
 sed -i "s/DB_USERNAME=user/DB_USERNAME=$DB_USERNAME/g" .env
 sed -i "s/DB_PASSWORD=password/DB_PASSWORD=$DB_PASSWORD/g" .env
