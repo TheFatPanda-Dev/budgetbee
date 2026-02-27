@@ -130,7 +130,7 @@ echo "You will need this folder whenever you want to start, stop, update or "
 echo "maintain your budgetbee instance."
 echo ""
 
-ask "Target folder" "$(pwd)/budgetbee"
+ask "Target folder" "$(pwd)"
 TARGET_FOLDER=$ask_result
 
 echo ""
@@ -263,4 +263,25 @@ ${DOCKER_COMPOSE_CMD} stop
 
 ${DOCKER_COMPOSE_CMD} up --detach
 
-${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD"
+echo "Waiting for webserver and database initialization before creating the user..."
+MAX_RETRIES=30
+RETRY_DELAY=3
+ATTEMPT=1
+
+while true ; do
+	if ${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD" ; then
+		echo "Initial user created successfully."
+		break
+	fi
+
+	if [[ $ATTEMPT -ge $MAX_RETRIES ]] ; then
+		echo "ERROR: Could not create initial user after ${MAX_RETRIES} attempts."
+		echo "You can create it manually later with:"
+		echo "${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php \"$USERNAME\" \"$EMAIL\" \"<password>\""
+		exit 1
+	fi
+
+	echo "User creation attempt ${ATTEMPT}/${MAX_RETRIES} failed. Retrying in ${RETRY_DELAY}s..."
+	ATTEMPT=$((ATTEMPT + 1))
+	sleep $RETRY_DELAY
+done
