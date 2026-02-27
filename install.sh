@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 ask() {
 	while true ; do
 		if [[ -z $3 ]] ; then
@@ -79,6 +81,9 @@ if ! docker stats --no-stream &> /dev/null ; then
 fi
 
 default_time_zone=$(timedatectl show -p Timezone --value)
+if [[ -z $default_time_zone ]]; then
+	default_time_zone="UTC"
+fi
 
 set -e
 
@@ -99,7 +104,7 @@ echo ""
 
 IP=$(hostname -I | awk '{print $1}')
 ask "ip" "$IP"
-IP=$IP
+IP=$ask_result
 
 ask "Web App Port" "8895"
 APP_PORT=$ask_result
@@ -203,16 +208,19 @@ mkdir -p "$TARGET_FOLDER"
 
 cd "$TARGET_FOLDER"
 
-wget "https://raw.githubusercontent.com/budgetbee/budgetbee/main/docker/docker-compose.yml" -O docker-compose.yml
-wget "https://raw.githubusercontent.com/budgetbee/budgetbee/main/docker/.env.example" -O .env
-wget "https://raw.githubusercontent.com/budgetbee/budgetbee/main/docker/nginx/nginx.conf" -O default.conf
+if [[ -f "$SCRIPT_DIR/docker/docker-compose.yml" && -f "$SCRIPT_DIR/docker/.env.example" && -f "$SCRIPT_DIR/docker/nginx/nginx.conf" ]]; then
+	cp "$SCRIPT_DIR/docker/docker-compose.yml" docker-compose.yml
+	cp "$SCRIPT_DIR/docker/.env.example" .env
+	cp "$SCRIPT_DIR/docker/nginx/nginx.conf" default.conf
+else
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/docker-compose.yml" -O docker-compose.yml
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/.env.example" -O .env
+	wget "https://raw.githubusercontent.com/TheFatPanda-Dev/budgetbee/main/docker/nginx/nginx.conf" -O default.conf
+fi
 
 SECRET_KEY=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
 DB_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
 DB_ROOT_PASSWORD=$(tr --delete --complement 'a-zA-Z0-9' < /dev/urandom 2>/dev/null | head --bytes 64)
-
-DB_PASSWORD="password"
-DB_ROOT_PASSWORD="root_password"
 
 sed -i "s/HOST=localhost/HOST=$IP/g" .env
 sed -i "s/DB_PASSWORD=password/DB_PASSWORD=$DB_PASSWORD/g" .env
