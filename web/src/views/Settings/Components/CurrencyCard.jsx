@@ -27,7 +27,7 @@ export default function CurrencySettings({ currency, userSettings }) {
     return (
         <div
             key={currency.id}
-            className="flex flex-col gap-y-5 block max-w-sm p-6 border rounded-lg shadow hover:bg-gray-100 bg-gray-700 border-gray-700 hover:bg-gray-600 transition"
+            className="flex flex-col gap-y-5 max-w-sm p-6 border rounded-lg shadow bg-gray-700 border-gray-700 hover:bg-gray-600 transition"
         >
             <h5 className="flex flex-row gap-x-2 items-center mb-2 text-2xl font-bold tracking-tight text-white">
                 <span>{currency.name}</span>

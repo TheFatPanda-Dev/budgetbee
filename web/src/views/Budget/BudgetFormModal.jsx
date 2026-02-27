@@ -83,7 +83,7 @@ export default function BudgetFormModal({ isOpen, onOpenChange, budget, setIsUpd
                     <>
                         <ModalHeader className="flex flex-col gap-1 text-white/90">{title}</ModalHeader>
                         <ModalBody>
-                            <form onSubmit={handleSaveForm} ref={formRef} id="budgetForm" className="block flex flex-col gap-y-2">
+                            <form onSubmit={handleSaveForm} ref={formRef} id="budgetForm" className="flex flex-col gap-y-2">
                                 <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
                                     <Input name="amount" type="number" step="any" label="Amount/Month" color="secundary" value={amount} onChange={(e) => setAmount(e.target.value)} />
                                 </div>
