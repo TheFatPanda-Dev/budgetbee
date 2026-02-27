@@ -345,13 +345,39 @@ ${DOCKER_COMPOSE_CMD} stop
 
 ${DOCKER_COMPOSE_CMD} up --detach
 
+echo "Waiting for all services to be up before creating the user..."
+MAX_SERVICE_RETRIES=60
+SERVICE_RETRY_DELAY=3
+SERVICE_ATTEMPT=1
+
+while true ; do
+	total_services=$(${DOCKER_COMPOSE_CMD} ps --services 2>/dev/null | wc -l)
+	running_services=$(${DOCKER_COMPOSE_CMD} ps --services --filter status=running 2>/dev/null | wc -l)
+	db_healthy=$(${DOCKER_COMPOSE_CMD} ps db 2>/dev/null | grep -c "healthy" || true)
+
+	if [[ "$total_services" -gt 0 && "$running_services" -eq "$total_services" && "$db_healthy" -gt 0 ]] ; then
+		echo "All services are up and database is healthy."
+		break
+	fi
+
+	if [[ $SERVICE_ATTEMPT -ge $MAX_SERVICE_RETRIES ]] ; then
+		echo "ERROR: Services did not become ready in time."
+		${DOCKER_COMPOSE_CMD} ps
+		exit 1
+	fi
+
+	echo "Service readiness check ${SERVICE_ATTEMPT}/${MAX_SERVICE_RETRIES} not ready yet. Retrying in ${SERVICE_RETRY_DELAY}s..."
+	SERVICE_ATTEMPT=$((SERVICE_ATTEMPT + 1))
+	sleep $SERVICE_RETRY_DELAY
+done
+
 echo "Waiting for webserver and database initialization before creating the user..."
 MAX_RETRIES=30
 RETRY_DELAY=3
 ATTEMPT=1
 
 while true ; do
-	if ${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD" ; then
+	if ${DOCKER_COMPOSE_CMD} exec -T webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD" ; then
 		echo "Initial user created successfully."
 		break
 	fi
@@ -359,7 +385,7 @@ while true ; do
 	if [[ $ATTEMPT -ge $MAX_RETRIES ]] ; then
 		echo "ERROR: Could not create initial user after ${MAX_RETRIES} attempts."
 		echo "You can create it manually later with:"
-		echo "${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php \"$USERNAME\" \"$EMAIL\" \"<password>\""
+		echo "${DOCKER_COMPOSE_CMD} exec -T webserver php scripts/create_user.php \"$USERNAME\" \"$EMAIL\" \"<password>\""
 		exit 1
 	fi
 
