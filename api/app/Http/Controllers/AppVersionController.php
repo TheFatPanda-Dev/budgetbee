@@ -11,6 +11,10 @@ class AppVersionController extends Controller
     public function get()
     {
         $version = config('app.version');
+        if ($version === 'I dont Know' || empty($version)) {
+            $version = env('APP_VERSION', '0.9.1');
+        }
+
         $repoOwner = 'budgetbee';
         $repoName = 'budgetbee';
         $cacheKey = 'latest_version';
