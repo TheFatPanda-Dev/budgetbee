@@ -248,4 +248,4 @@ ${DOCKER_COMPOSE_CMD} stop
 
 ${DOCKER_COMPOSE_CMD} up --detach
 
-${DOCKER_COMPOSE_CMD} run --rm php php scripts/create_user.php $USERNAME $EMAIL $PASSWORD
+${DOCKER_COMPOSE_CMD} run --rm webserver php scripts/create_user.php "$USERNAME" "$EMAIL" "$PASSWORD"
