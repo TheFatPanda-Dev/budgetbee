@@ -1,6 +1,6 @@
 import * as React from "react";
 import { BrowserRouter } from "react-router-dom";
-import { HeroUIProvider } from "@heroui/react";
+import { HeroUIProvider } from "@heroui/system";
 import "./App.css";
 
 import AppRoutes from "./AppRoutes";
